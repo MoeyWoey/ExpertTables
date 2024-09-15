@@ -1,4 +1,36 @@
-<div id="button-bar" class="mb-4">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Table with Export, Import, and Other Functions</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    /* Sticky buttons at the top */
+    #button-bar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background-color: white;
+      padding: 10px 0;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .edit-title-btn {
+      font-size: 12px;
+      margin-left: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container my-5">
+  <!-- Sticky button bar -->
+  <div id="button-bar" class="mb-4">
   <div class="d-flex justify-content-start align-items-center">
     <select class="form-select me-2" id="table-select">
       <option value="1">Table 1</option>
@@ -32,3 +64,287 @@
     <input type="file" id="file-input" style="display: none;" />
   </div>
 </div>
+  </div>
+
+  <!-- Main table section -->
+  <div id="table-section">
+    <div class="table-container">
+      <h2 class="mb-4 d-flex align-items-center">
+        <span class="table-title">Table 1</span>
+        <button class="btn btn-link edit-title-btn" data-table-id="1">Edit</button>
+      </h2>
+      <table class="table table-bordered dynamic-table" data-table-number="1">
+        <thead class="table-dark">
+          <tr>
+            <th>Select</th>
+            <th>#</th>
+            <th>Phone Number</th>
+            <th>Name</th>
+          </tr>
+        </thead>
+        <tbody class="table-body">
+          <tr class="selectable">
+            <td><input type="checkbox" class="row-checkbox"></td>
+            <th scope="row">1</th>
+            <td class="phone-number">+1234567890</td>
+            <td class="name">John Doe</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap 5 JS and Popper -->
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"></script>
+
+<!-- Custom JS -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  let selectedRows = [];
+
+  // Add row function
+  document.getElementById('add-row').addEventListener('click', () => {
+    const selectedTableNumber = document.getElementById('table-select').value;
+    const tableBody = document.querySelector(`table[data-table-number="${selectedTableNumber}"] .table-body`);
+    const rowCount = tableBody.querySelectorAll('tr').length + 1;
+
+    const newRow = `
+      <tr class="selectable">
+        <td><input type="checkbox" class="row-checkbox"></td>
+        <th scope="row">${rowCount}</th>
+        <td class="phone-number">+1122334455</td>
+        <td class="name">New Name</td>
+      </tr>`;
+    tableBody.insertAdjacentHTML('beforeend', newRow);
+
+    updateEventListeners();
+  });
+
+  // Remove row function
+  document.getElementById('remove-row').addEventListener('click', () => {
+    selectedRows.forEach(item => item.rowElement.remove());
+    selectedRows = [];
+    document.getElementById('remove-row').disabled = true;
+    document.getElementById('send-whatsapp-messages').disabled = true;
+    document.getElementById('edit-row').disabled = true;
+    updateEventListeners();
+  });
+
+  // Edit row function
+  document.getElementById('edit-row').addEventListener('click', () => {
+    if (selectedRows.length === 1) {
+      const row = selectedRows[0].rowElement;
+      const phoneNumberCell = row.querySelector('.phone-number');
+      const nameCell = row.querySelector('.name');
+      if (row.getAttribute('data-editing') === 'true') {
+        phoneNumberCell.textContent = row.querySelector('.phone-input').value;
+        nameCell.textContent = row.querySelector('.name-input').value;
+        row.setAttribute('data-editing', 'false');
+      } else {
+        phoneNumberCell.innerHTML = `<input type="text" class="form-control phone-input" value="${phoneNumberCell.textContent}">`;
+        nameCell.innerHTML = `<input type="text" class="form-control name-input" value="${nameCell.textContent}">`;
+        row.setAttribute('data-editing', 'true');
+      }
+    }
+  });
+
+  // Send WhatsApp messages
+  document.getElementById('send-whatsapp-messages').addEventListener('click', () => {
+    selectedRows.forEach(item => {
+      const cleanPhoneNumber = item.phoneNumber.replace(/\D/g, '');
+      const message = encodeURIComponent(`Hello ${item.name}, this is a message`);
+      const whatsappURL = `https://wa.me/${cleanPhoneNumber}?text=${message}`;
+      window.open(whatsappURL, '_blank');
+    });
+  });
+
+  // Create new table function
+  document.getElementById('create-new-table').addEventListener('click', () => {
+    const newTableNumber = document.querySelectorAll('.dynamic-table').length + 1;
+    const newTable = `
+      <div class="table-container">
+        <h2 class="mb-4 d-flex align-items-center">
+          <span class="table-title">Table ${newTableNumber}</span>
+          <button class="btn btn-link edit-title-btn" data-table-id="${newTableNumber}">Edit</button>
+        </h2>
+        <table class="table table-bordered dynamic-table" data-table-number="${newTableNumber}">
+          <thead class="table-dark">
+            <tr>
+              <th>Select</th>
+              <th>#</th>
+              <th>Phone Number</th>
+              <th>Name</th>
+            </tr>
+          </thead>
+          <tbody class="table-body">
+          </tbody>
+        </table>
+      </div>
+    `;
+    document.getElementById('table-section').insertAdjacentHTML('beforeend', newTable);
+    const tableSelect = document.getElementById('table-select');
+    const newOption = new Option(`Table ${newTableNumber}`, newTableNumber);
+    tableSelect.add(newOption);
+    updateEventListeners();
+  });
+
+  // Update row selection and buttons
+  function updateEventListeners() {
+    document.querySelectorAll('.row-checkbox').forEach(checkbox => {
+      checkbox.addEventListener('change', handleRowSelection);
+    });
+  }
+
+  // Handle row selection
+  function handleRowSelection(e) {
+    const row = e.target.closest('tr');
+    const phoneNumber = row.querySelector('.phone-number').textContent;
+    const name = row.querySelector('.name').textContent;
+
+    if (e.target.checked) {
+      selectedRows.push({ phoneNumber, name, rowElement: row });
+    } else {
+      selectedRows = selectedRows.filter(item => item.rowElement !== row);
+    }
+
+    document.getElementById('remove-row').disabled = selectedRows.length === 0;
+    document.getElementById('send-whatsapp-messages').disabled = selectedRows.length === 0;
+    document.getElementById('edit-row').disabled = selectedRows.length !== 1;
+  }
+
+  updateEventListeners();
+
+  // Export/import functions
+
+  // Export table data as a JSON file (for all tables)
+  document.getElementById('export-json').addEventListener('click', () => {
+    const allTableData = gatherAllTableData(); // Get data from all tables
+    const jsonStr = JSON.stringify(allTableData, null, 2);
+    downloadFile(jsonStr, 'table_data.json', 'application/json');
+  });
+
+  // Export table data as a CSV file (for all tables)
+  document.getElementById('export-csv').addEventListener('click', () => {
+    const allTableData = gatherAllTableData(); // Get data from all tables
+    const csvStr = convertToCSV(allTableData);
+    downloadFile(csvStr, 'table_data.csv', 'text/csv');
+  });
+
+  // Trigger file input for importing JSON
+  document.getElementById('import-json').addEventListener('click', () => {
+    document.getElementById('file-input').click();
+  });
+
+  // Load JSON data and populate the table
+  document.getElementById('file-input').addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const data = JSON.parse(e.target.result);
+        populateAllTablesWithData(data); // Populate all tables with the loaded data
+      };
+      reader.readAsText(file);
+    }
+  });
+
+  // Function to gather all table data into an array
+  function gatherAllTableData() {
+    const allTablesData = [];
+    const tables = document.querySelectorAll('.dynamic-table');
+    
+    tables.forEach((table, index) => {
+      const tableData = [];
+      const rows = table.querySelectorAll('tbody tr');
+      
+      rows.forEach((row, rowIndex) => {
+        const phoneNumber = row.querySelector('.phone-number').textContent;
+        const name = row.querySelector('.name').textContent;
+        tableData.push({ phoneNumber, name });
+      });
+
+      allTablesData.push({
+        tableId: index + 1, // Use the table number as an identifier
+        data: tableData
+      });
+    });
+
+    return allTablesData;
+  }
+
+  // Function to download data as a file
+  function downloadFile(data, filename, type) {
+    const file = new Blob([data], { type: type });
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.href = URL.createObjectURL(file);
+    downloadAnchor.download = filename;
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    document.body.removeChild(downloadAnchor);
+  }
+
+  // Function to convert table data to CSV format
+  function convertToCSV(data) {
+    let csvContent = '';
+
+    data.forEach((table) => {
+      csvContent += `Table ${table.tableId}\n`;
+      const headers = ['Phone Number', 'Name'];
+      const rows = table.data.map(row => `${row.phoneNumber},${row.name}`);
+      csvContent += [headers.join(','), ...rows].join('\n') + '\n\n';
+    });
+
+    return csvContent;
+  }
+
+  // Function to populate all tables with imported data
+  function populateAllTablesWithData(data) {
+    const tableSection = document.getElementById('table-section');
+    tableSection.innerHTML = ''; // Clear all existing tables
+
+    data.forEach((tableData, index) => {
+      // Create a new table for each set of data
+      const tableContainer = document.createElement('div');
+      tableContainer.classList.add('table-container');
+      tableContainer.innerHTML = `
+        <h2 class="mb-4 d-flex align-items-center">
+          <span class="table-title">Table ${index + 1}</span>
+          <button class="btn btn-link edit-title-btn" data-table-id="${index + 1}">Edit</button>
+        </h2>
+        <table class="table table-bordered dynamic-table" data-table-number="${index + 1}">
+          <thead class="table-dark">
+            <tr>
+              <th>Select</th>
+              <th>#</th>
+              <th>Phone Number</th>
+              <th>Name</th>
+            </tr>
+          </thead>
+          <tbody class="table-body">
+            ${tableData.data.map((rowData, rowIndex) => `
+              <tr>
+                <td><input type="checkbox" class="row-checkbox"></td>
+                <th scope="row">${rowIndex + 1}</th>
+                <td class="phone-number">${rowData.phoneNumber}</td>
+                <td class="name">${rowData.name}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+      tableSection.appendChild(tableContainer);
+    });
+
+    updateEventListeners();
+  }
+
+  updateEventListeners();
+
+});
+
+</script>
+
+</body>
+</html>
