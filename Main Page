@@ -31,39 +31,38 @@
 <div class="container my-5">
   <!-- Sticky button bar -->
   <div id="button-bar" class="mb-4">
-  <div class="d-flex justify-content-start align-items-center">
-    <select class="form-select me-2" id="table-select">
-      <option value="1">Table 1</option>
-    </select>
-    <!-- Buttons for table operations -->
-    <button class="btn btn-primary me-2" id="add-row" title="Add Row">
-      <i class="fas fa-plus"></i>
-    </button>
-    <button class="btn btn-success me-2" id="send-whatsapp-messages" disabled title="Send WhatsApp Messages">
-      <i class="fab fa-whatsapp"></i>
-    </button>
-    <button class="btn btn-warning me-2" id="edit-row" disabled title="Edit Selected Row">
-      <i class="fas fa-edit"></i>
-    </button>
-    <button class="btn btn-danger me-2" id="remove-row" disabled title="Remove Selected Rows">
-      <i class="fas fa-trash"></i>
-    </button>
-    <button class="btn btn-info me-2" id="create-new-table" title="Create New Table">
-      <i class="fas fa-table"></i>
-    </button>
-    <!-- Updated buttons for export/import with icons -->
-    <button id="export-json" class="btn btn-primary ms-2" title="Export as JSON">
-      <i class="fas fa-file-export"></i>
-    </button>
-    <button id="export-csv" class="btn btn-secondary ms-2" title="Export as CSV">
-      <i class="fas fa-file-csv"></i>
-    </button>
-    <button id="import-json" class="btn btn-success ms-2" title="Import JSON">
-      <i class="fas fa-file-import"></i>
-    </button>
-    <input type="file" id="file-input" style="display: none;" />
-  </div>
-</div>
+    <div class="d-flex justify-content-start align-items-center">
+      <select class="form-select me-2" id="table-select">
+        <option value="1">Table 1</option>
+      </select>
+      <!-- Buttons for table operations -->
+      <button class="btn btn-primary me-2" id="add-row" title="Add Row">
+        <i class="fas fa-plus"></i>
+      </button>
+      <button class="btn btn-success me-2" id="send-whatsapp-messages" disabled title="Send WhatsApp Messages">
+        <i class="fab fa-whatsapp"></i>
+      </button>
+      <button class="btn btn-warning me-2" id="edit-row" disabled title="Edit Selected Row">
+        <i class="fas fa-edit"></i>
+      </button>
+      <button class="btn btn-danger me-2" id="remove-row" disabled title="Remove Selected Rows">
+        <i class="fas fa-trash"></i>
+      </button>
+      <button class="btn btn-info me-2" id="create-new-table" title="Create New Table">
+        <i class="fas fa-table"></i>
+      </button>
+      <!-- Updated buttons for export/import with icons -->
+      <button id="export-json" class="btn btn-primary ms-2" title="Export as JSON">
+        <i class="fas fa-file-export"></i>
+      </button>
+      <button id="export-csv" class="btn btn-secondary ms-2" title="Export as CSV">
+        <i class="fas fa-file-csv"></i>
+      </button>
+      <button id="import-json" class="btn btn-success ms-2" title="Import JSON">
+        <i class="fas fa-file-import"></i>
+      </button>
+      <input type="file" id="file-input" style="display: none;" />
+    </div>
   </div>
 
   <!-- Main table section -->
@@ -120,6 +119,26 @@ document.addEventListener('DOMContentLoaded', function() {
     tableBody.insertAdjacentHTML('beforeend', newRow);
 
     updateEventListeners();
+  });
+
+  // Edit title button function
+  document.getElementById('table-section').addEventListener('click', function(e) {
+    if (e.target && e.target.classList.contains('edit-title-btn')) {
+      const tableContainer = e.target.closest('.table-container');
+      const tableTitleSpan = tableContainer.querySelector('.table-title');
+
+      if (e.target.textContent === "Edit") {
+        // Turn the title into an input field for editing
+        const currentTitle = tableTitleSpan.textContent;
+        tableTitleSpan.innerHTML = `<input type="text" class="form-control" value="${currentTitle}">`;
+        e.target.textContent = "Save";
+      } else if (e.target.textContent === "Save") {
+        // Save the new title
+        const newTitle = tableTitleSpan.querySelector('input').value;
+        tableTitleSpan.textContent = newTitle;
+        e.target.textContent = "Edit";
+      }
+    }
   });
 
   // Remove row function
